@@ -1,0 +1,552 @@
+/**
+ * app.js — Motor principal dos Testes de Atenção (Fabián Javier)
+ *
+ * Layout: grade fixa 10×10 (100 itens)
+ * Figuras: SVG preto sobre branco
+ * Interação: itens marcados com ✓/✗ mas NÃO somem da tela
+ */
+
+'use strict';
+
+/* =====================================================
+   CONSTANTES
+   ===================================================== */
+const LINHAS             = 10;
+const COLUNAS            = 10;
+const TOTAL_ITENS        = LINHAS * COLUNAS;   // 100
+const TEMPO_TESTE        = 120;                // segundos
+const PROB_ALVO          = 0.22;               // 22% de chance de nascer alvo
+const AA_FASE_DURACAO    = 15;                 // segundos por fase (AA)
+const SPAM_COOLDOWN_MS   = 250;               // ms entre cliques no mesmo item
+
+/* =====================================================
+   ESTADO GLOBAL
+   ===================================================== */
+const Estado = {
+  tipo:             null,
+  alvos:            [],
+  alvosAtivo:       0,
+  acertos:          0,
+  erros:            0,
+  tempoTotal:       TEMPO_TESTE,
+  tempoRestante:    TEMPO_TESTE,
+  aaFaseRestante:   AA_FASE_DURACAO,
+  totalAlvosNaTela: 0,
+  alvosClicados:    new Set(),
+  itensInteragidos: new Set(), // acertos + erros já marcados (não reprocessar)
+  rodandoTeste:     false,
+  timerInterval:    null,
+  spamCooldowns:    new Map(),
+  itensGerados:     [],
+};
+
+/* =====================================================
+   UTILITÁRIOS
+   ===================================================== */
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+function $el(tag, cls, html = '') {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (html) el.innerHTML = html;
+  return el;
+}
+
+function showFeedback(x, y, texto) {
+  const el = $el('div', 'feedback-float');
+  el.textContent = texto;
+  el.style.left = `${x - 16}px`;
+  el.style.top  = `${y - 24}px`;
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+/* =====================================================
+   COMPONENTE: MENU SELETOR
+   ===================================================== */
+function renderMenuSeletor() {
+  document.body.style.overflow = '';
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  const menu = $el('div', 'menu-seletor');
+  menu.setAttribute('role', 'main');
+
+  const header = $el('div', 'menu-header');
+  header.innerHTML = `
+    <div class="badge">Neuropsicologia</div>
+    <h1>Testes de Atenção</h1>
+    <p>Avaliação baseada na metodologia de Fabián Javier. Selecione o tipo de teste.</p>
+  `;
+  menu.appendChild(header);
+
+  const cards = $el('div', 'menu-cards');
+
+  const tipos = [
+    {
+      id: 'AC', emoji: '◎', classe: 'card-ac',
+      sigla: 'AC — Concentrada',
+      nome: 'Atenção Concentrada',
+      desc: 'Identifique 1 figura-alvo entre os distratores o mais rápido possível.',
+      chips: ['1 alvo', '100 itens', '120s'],
+    },
+    {
+      id: 'AD', emoji: '⊗', classe: 'card-ad',
+      sigla: 'AD — Dividida',
+      nome: 'Atenção Dividida',
+      desc: 'Rastreie 3 figuras-alvo simultâneas e marque qualquer uma delas.',
+      chips: ['3 alvos', '100 itens', '120s'],
+    },
+    {
+      id: 'AA', emoji: '⇄', classe: 'card-aa',
+      sigla: 'AA — Alternada',
+      nome: 'Atenção Alternada',
+      desc: 'Foque em 2 alvos, mas apenas 1 por vez. O alvo ativo troca a cada 15 segundos.',
+      chips: ['2 alvos', '100 itens', '15s/fase'],
+    },
+  ];
+
+  tipos.forEach(t => {
+    const card = $el('div', `card-teste ${t.classe}`);
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `Iniciar ${t.nome}`);
+    card.id = `btn-${t.id.toLowerCase()}`;
+    card.innerHTML = `
+      <div class="card-icon">${t.emoji}</div>
+      <div class="card-sigla">${t.sigla}</div>
+      <div class="card-nome">${t.nome}</div>
+      <div class="card-desc">${t.desc}</div>
+      <div class="card-meta">
+        ${t.chips.map(c => `<span class="chip">${c}</span>`).join('')}
+      </div>
+      <div class="card-arrow">↗</div>
+    `;
+    card.addEventListener('click', () => iniciarTeste(t.id));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') iniciarTeste(t.id);
+    });
+    cards.appendChild(card);
+  });
+
+  menu.appendChild(cards);
+  app.appendChild(menu);
+}
+
+/* =====================================================
+   COMPONENTE: PAINEL ALVO
+   ===================================================== */
+function renderPainelAlvo() {
+  const painel = $el('div', 'painel-alvo');
+  painel.id = 'painel-alvo';
+
+  // Esquerda
+  const left = $el('div', 'painel-left');
+  left.innerHTML = `
+    <span class="painel-tipo">${Estado.tipo}</span>
+    <span class="painel-label">Procure:</span>
+  `;
+
+  const alvosContainer = $el('div', 'painel-alvos-container');
+  alvosContainer.id = 'painel-alvos-container';
+
+  Estado.alvos.forEach((chave, i) => {
+    const item = $el('div', 'painel-alvo-item');
+    item.id = `painel-alvo-${i}`;
+    item.innerHTML = FIGURAS[chave]();
+
+    if (Estado.tipo === 'AA') {
+      item.classList.toggle('ativo',   i === Estado.alvosAtivo);
+      item.classList.toggle('inativo', i !== Estado.alvosAtivo);
+      const tag = $el('span', 'aa-tag');
+      tag.textContent = i + 1;
+      item.appendChild(tag);
+    } else {
+      item.classList.add('ativo');
+    }
+    alvosContainer.appendChild(item);
+  });
+
+  left.appendChild(alvosContainer);
+
+  // Centro: timer + contadores
+  const centro = $el('div', 'painel-center');
+  const CIRCUNF = 2 * Math.PI * 21; // r=21 → ~132
+
+  const timerWrap = $el('div', 'timer-wrap');
+  timerWrap.innerHTML = `
+    <svg class="timer-svg" viewBox="0 0 48 48">
+      <circle class="timer-track" cx="24" cy="24" r="21"/>
+      <circle class="timer-arc" id="timer-arc" cx="24" cy="24" r="21"
+        style="stroke-dasharray:${CIRCUNF.toFixed(1)};stroke-dashoffset:0"/>
+    </svg>
+    <span class="timer-text" id="timer-text">${Estado.tempoRestante}</span>
+  `;
+  centro.appendChild(timerWrap);
+
+  const counters = $el('div', 'painel-counters');
+  counters.innerHTML = `
+    <div class="counter-item" id="ctr-acertos">
+      <span class="counter-label">Acertos</span>
+      <span class="counter-value" id="ctr-acertos-val">0</span>
+    </div>
+    <div class="counter-item" id="ctr-erros">
+      <span class="counter-label">Erros</span>
+      <span class="counter-value" id="ctr-erros-val">0</span>
+    </div>
+  `;
+  centro.appendChild(counters);
+
+  if (Estado.tipo === 'AA') {
+    const switchBar = $el('div', 'aa-switch-bar');
+    switchBar.id = 'aa-switch-bar';
+    switchBar.innerHTML = `
+      <span>Troca em:</span>
+      <div class="progress-mini">
+        <div class="progress-fill" id="aa-progress" style="width:100%"></div>
+      </div>
+      <span id="aa-fase-countdown">${AA_FASE_DURACAO}s</span>
+    `;
+    centro.appendChild(switchBar);
+  }
+
+  // Direita: sair
+  const right = $el('div', 'painel-right');
+  const btnSair = $el('button', 'btn-sair');
+  btnSair.id = 'btn-sair';
+  btnSair.textContent = '✕ Encerrar';
+  btnSair.setAttribute('aria-label', 'Encerrar teste');
+  btnSair.addEventListener('click', () => encerrarTeste(false));
+  right.appendChild(btnSair);
+
+  painel.appendChild(left);
+  painel.appendChild(centro);
+  painel.appendChild(right);
+
+  return painel;
+}
+
+function atualizarPainel() {
+  const CIRCUNF = 2 * Math.PI * 21;
+
+  // Timer
+  const arc = document.getElementById('timer-arc');
+  const txt = document.getElementById('timer-text');
+  if (arc) {
+    const ratio = Estado.tempoRestante / Estado.tempoTotal;
+    arc.style.strokeDashoffset = (CIRCUNF * (1 - ratio)).toFixed(2);
+    if (ratio < 0.25) arc.classList.add('alerta');
+  }
+  if (txt) {
+    const m = Math.floor(Estado.tempoRestante / 60);
+    const s = Estado.tempoRestante % 60;
+    txt.textContent = m > 0 ? `${m}:${s.toString().padStart(2,'0')}` : Estado.tempoRestante;
+  }
+
+  // Counters
+  const av = document.getElementById('ctr-acertos-val');
+  const ev = document.getElementById('ctr-erros-val');
+  if (av) av.textContent = Estado.acertos;
+  if (ev) ev.textContent = Estado.erros;
+
+  // AA
+  if (Estado.tipo === 'AA') {
+    Estado.alvos.forEach((_, i) => {
+      const el = document.getElementById(`painel-alvo-${i}`);
+      if (!el) return;
+      el.classList.toggle('ativo',   i === Estado.alvosAtivo);
+      el.classList.toggle('inativo', i !== Estado.alvosAtivo);
+    });
+    const pct = (Estado.aaFaseRestante / AA_FASE_DURACAO) * 100;
+    const prog  = document.getElementById('aa-progress');
+    const label = document.getElementById('aa-fase-countdown');
+    if (prog)  prog.style.width = `${pct}%`;
+    if (label) label.textContent = `${Estado.aaFaseRestante}s`;
+  }
+}
+
+/* =====================================================
+   GERAÇÃO DO GRID 10×10
+   ===================================================== */
+function gerarGrid(grid) {
+  Estado.itensGerados     = [];
+  Estado.totalAlvosNaTela = 0;
+  Estado.alvosClicados    = new Set();
+  Estado.itensInteragidos = new Set();
+
+  // Decide quais posições serão alvo (garante pelo menos PROB_ALVO * 100)
+  const slots = Array.from({ length: TOTAL_ITENS }, (_, i) => i);
+
+  // Embaralha Fisher-Yates
+  for (let i = slots.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [slots[i], slots[j]] = [slots[j], slots[i]];
+  }
+
+  // Define posições-alvo
+  const qtdAlvos    = Math.round(TOTAL_ITENS * PROB_ALVO); // ~22
+  const posAlvos    = new Set(slots.slice(0, qtdAlvos));
+
+  for (let i = 0; i < TOTAL_ITENS; i++) {
+    const isAlvo = posAlvos.has(i);
+
+    let chave, alvoIndex = null;
+    if (isAlvo) {
+      alvoIndex = Math.floor(Math.random() * Estado.alvos.length);
+      chave = Estado.alvos[alvoIndex];
+    } else {
+      chave = figuraDitratora(Estado.alvos);
+    }
+
+    const id = uid();
+    const el = $el('div', 'item-teste');
+    el.id = `item-${id}`;
+    el.dataset.id       = id;
+    el.dataset.isAlvo   = isAlvo ? '1' : '0';
+    el.dataset.alvoIndex = alvoIndex !== null ? alvoIndex : '';
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-label', 'Figura do teste');
+    el.innerHTML = FIGURAS[chave]();
+
+    el.addEventListener('click', (e) => onItemClick(e, id, isAlvo, alvoIndex, el));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') onItemClick(e, id, isAlvo, alvoIndex, el);
+    });
+
+    grid.appendChild(el);
+
+    Estado.itensGerados.push({ id, chave, isAlvo, alvoIndex, el });
+    if (isAlvo) Estado.totalAlvosNaTela++;
+  }
+}
+
+/* =====================================================
+   HANDLER DE CLIQUE
+   ===================================================== */
+function onItemClick(e, id, isAlvo, alvoIndex, el) {
+  if (!Estado.rodandoTeste) return;
+
+  // Já interagido → ignora
+  if (Estado.itensInteragidos.has(id)) return;
+
+  // Anti-spam
+  const agora = Date.now();
+  const ultimo = Estado.spamCooldowns.get(id) || 0;
+  if (agora - ultimo < SPAM_COOLDOWN_MS) return;
+  Estado.spamCooldowns.set(id, agora);
+
+  // Para AA: verifica se o alvo está ativo
+  const alvoAtivo = Estado.tipo !== 'AA' || !isAlvo || (alvoIndex === Estado.alvosAtivo);
+
+  if (isAlvo && alvoAtivo) {
+    Estado.acertos++;
+    Estado.alvosClicados.add(id);
+    Estado.itensInteragidos.add(id);
+    el.classList.add('acertado');
+    showFeedback(e.clientX, e.clientY, '+1 ✓');
+  } else {
+    Estado.erros++;
+    Estado.itensInteragidos.add(id);
+    // Shake + marca permanente
+    el.classList.add('shake');
+    el.addEventListener('animationend', () => {
+      el.classList.remove('shake');
+      el.classList.add('errado-marcado');
+    }, { once: true });
+    showFeedback(e.clientX, e.clientY, '−1 ✗');
+  }
+
+  atualizarPainel();
+}
+
+/* =====================================================
+   COUNTDOWN
+   ===================================================== */
+function showCountdown(callback) {
+  const overlay = $el('div', 'countdown-overlay');
+  overlay.id = 'countdown-overlay';
+  const numEl  = $el('div', 'countdown-number');
+  const lbl    = $el('div', 'countdown-label');
+  lbl.textContent = 'Prepare-se…';
+  overlay.appendChild(numEl);
+  overlay.appendChild(lbl);
+  document.body.appendChild(overlay);
+
+  let n = 3;
+  numEl.textContent = n;
+
+  const tick = setInterval(() => {
+    n--;
+    if (n === 0) {
+      numEl.textContent = 'Vai!';
+      lbl.textContent = '';
+      setTimeout(() => {
+        clearInterval(tick);
+        overlay.remove();
+        callback();
+      }, 650);
+    } else {
+      // Re-dispara animação
+      const novo = numEl.cloneNode(false);
+      novo.textContent = n;
+      overlay.replaceChild(novo, numEl);
+    }
+  }, 900);
+}
+
+/* =====================================================
+   INICIAR TESTE
+   ===================================================== */
+function iniciarTeste(tipo) {
+  // Reset
+  Estado.tipo             = tipo;
+  Estado.alvos            = sortearAlvos(tipo);
+  Estado.alvosAtivo       = 0;
+  Estado.acertos          = 0;
+  Estado.erros            = 0;
+  Estado.tempoTotal       = TEMPO_TESTE;
+  Estado.tempoRestante    = TEMPO_TESTE;
+  Estado.aaFaseRestante   = AA_FASE_DURACAO;
+  Estado.rodandoTeste     = false;
+  Estado.spamCooldowns    = new Map();
+  if (Estado.timerInterval) clearInterval(Estado.timerInterval);
+
+  // Monta DOM
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  const painel  = renderPainelAlvo();
+  const wrapper = $el('div', 'test-wrapper');
+  wrapper.id = 'test-wrapper';
+
+  const grid = $el('div', 'grid-teste');
+  grid.id = 'grid-teste';
+  grid.setAttribute('role', 'grid');
+  grid.setAttribute('aria-label', 'Grade do teste de atenção');
+
+  wrapper.appendChild(grid);
+  app.appendChild(painel);
+  app.appendChild(wrapper);
+
+  // Gera os 100 itens
+  gerarGrid(grid);
+
+  // Countdown → inicia timer
+  showCountdown(() => iniciarTimer(wrapper));
+}
+
+/* =====================================================
+   TIMER
+   ===================================================== */
+function iniciarTimer(wrapper) {
+  Estado.rodandoTeste = true;
+
+  Estado.timerInterval = setInterval(() => {
+    if (!Estado.rodandoTeste) return;
+    Estado.tempoRestante--;
+
+    // AA — troca de fase
+    if (Estado.tipo === 'AA') {
+      Estado.aaFaseRestante--;
+      if (Estado.aaFaseRestante <= 0) {
+        Estado.aaFaseRestante = AA_FASE_DURACAO;
+        Estado.alvosAtivo     = (Estado.alvosAtivo + 1) % Estado.alvos.length;
+        // Flash preto-e-branco na wrapper
+        wrapper.classList.add('flash');
+        wrapper.addEventListener('animationend', () => wrapper.classList.remove('flash'), { once: true });
+      }
+    }
+
+    atualizarPainel();
+
+    if (Estado.tempoRestante <= 0) encerrarTeste(true);
+  }, 1000);
+}
+
+/* =====================================================
+   ENCERRAR TESTE
+   ===================================================== */
+function encerrarTeste(porTempo) {
+  Estado.rodandoTeste = false;
+  clearInterval(Estado.timerInterval);
+
+  const omissoes  = Estado.totalAlvosNaTela - Estado.acertos;
+  const pontuacao = Estado.acertos - Estado.erros;
+
+  renderResultado({ acertos: Estado.acertos, erros: Estado.erros, omissoes, pontuacao, porTempo });
+}
+
+/* =====================================================
+   MODAL DE RESULTADO
+   ===================================================== */
+function renderResultado({ acertos, erros, omissoes, pontuacao, porTempo }) {
+  const nomeTeste = Estado.tipo === 'AC' ? 'Concentrada'
+                  : Estado.tipo === 'AD' ? 'Dividida' : 'Alternada';
+
+  let emoji = '◎', titulo = 'Resultado razoável';
+  if (pontuacao >= 15) { emoji = '★'; titulo = 'Excelente desempenho!'; }
+  else if (pontuacao >= 8) { emoji = '◆'; titulo = 'Bom resultado!'; }
+  else if (pontuacao < 0)  { emoji = '✕'; titulo = 'Precisa de treino'; }
+
+  const overlay = $el('div', 'resultado-overlay');
+  overlay.id = 'resultado-overlay';
+
+  const modal = $el('div', 'resultado-modal');
+  modal.innerHTML = `
+    <div class="resultado-emoji">${emoji}</div>
+    <h2 class="resultado-titulo">${titulo}</h2>
+    <p class="resultado-subtitulo">
+      Atenção ${nomeTeste} &mdash; ${porTempo ? 'Tempo esgotado' : 'Encerrado manualmente'}
+    </p>
+
+    <div class="resultado-stats">
+      <div class="stat-box stat-acertos">
+        <div class="stat-value">${acertos}</div>
+        <div class="stat-label">Acertos</div>
+      </div>
+      <div class="stat-box stat-erros">
+        <div class="stat-value">${erros}</div>
+        <div class="stat-label">Erros</div>
+      </div>
+      <div class="stat-box stat-omissoes">
+        <div class="stat-value">${omissoes}</div>
+        <div class="stat-label">Omissões</div>
+      </div>
+      <div class="stat-box stat-score">
+        <div class="stat-value">${pontuacao}</div>
+        <div class="stat-label">Pontuação</div>
+      </div>
+    </div>
+
+    <div class="resultado-pontuacao">
+      <div class="formula">Fórmula: Acertos − Erros = Pontuação</div>
+      <div class="pontuacao-final">${pontuacao}</div>
+      <div class="pontuacao-label">Pontuação final (pode ser negativa)</div>
+    </div>
+
+    <div class="resultado-botoes">
+      <button class="btn-secondary" id="btn-novo-teste">← Menu</button>
+      <button class="btn-primary"   id="btn-repetir">↺ Repetir ${nomeTeste}</button>
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  document.getElementById('btn-novo-teste').addEventListener('click', () => {
+    overlay.remove();
+    renderMenuSeletor();
+  });
+  document.getElementById('btn-repetir').addEventListener('click', () => {
+    overlay.remove();
+    iniciarTeste(Estado.tipo);
+  });
+}
+
+/* =====================================================
+   BOOT
+   ===================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  renderMenuSeletor();
+});
