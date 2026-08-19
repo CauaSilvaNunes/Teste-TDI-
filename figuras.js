@@ -1,103 +1,136 @@
 /**
- * figuras.js — Figuras abstratas do Teste de Atenção de Fabián Javier
+ * figuras.js — As 13 figuras do Teste de Atenção de Fabián Javier
  *
- * As figuras são reproduções SVG dos símbolos geométricos abstratos do teste
- * original (traço preto sobre fundo branco), sem letras, sem números, sem
- * símbolos culturais para não favorecer escolaridade.
+ * viewBox: "-8 -8 116 116"  →  8 unidades de margem em cada lado
+ *   (as formas continuam em coordenadas 0–100, mas o espaço
+ *    renderizado é maior, criando espaçamento natural entre células)
  *
- * Nomenclatura baseada nos modelos do teste original:
- *   F1 – Triângulo com ponto central
- *   F2 – Círculo com traço interno
- *   F3 – Quadrado vazio
- *   F4 – Losango
- *   F5 – Estrela de 4 pontas (×)
- *   F6 – Seta para a direita
- *   F7 – Ângulo aberto (chevron)
- *   F8 – Cruz (+)
- *   F9 – Semicírculo (arco)
- *   F10 – Triângulo invertido com traço
+ * ─── Grupo 1: Metades ──────────────────────────────────────
+ *  G1A  Metade Esquerda    rect x=0   y=0  w=50  h=100
+ *  G1B  Metade Direita     rect x=50  y=0  w=50  h=100
+ *  G1C  Metade Superior    rect x=0   y=0  w=100 h=50
+ *  G1D  Metade Inferior    rect x=0   y=50 w=100 h=50
+ *
+ * ─── Grupo 2: Triângulos de Borda (Isósceles) ──────────────
+ *  G2A  Apontando p/ Cima     (0,100)(100,100)(50,0)
+ *  G2B  Apontando p/ Baixo    (0,0)(100,0)(50,100)
+ *  G2C  Apontando p/ Esq.     (100,0)(100,100)(0,50)
+ *  G2D  Apontando p/ Dir.     (0,0)(0,100)(100,50)
+ *
+ * ─── Grupo 3: Cortes Diagonais (Triângulos Retângulos) ─────
+ *  G3A  Canto Sup. Esq.  /   (0,0)(100,0)(0,100)
+ *  G3B  Canto Inf. Dir.  /   (0,100)(100,100)(100,0)
+ *  G3C  Canto Sup. Dir.  \   (0,0)(100,0)(100,100)
+ *  G3D  Canto Inf. Esq.  \   (0,0)(100,100)(0,100)
+ *
+ * ─── Grupo 4: Figura Complexa ──────────────────────────────
+ *  G4A  Losango Vazado        ◆ com círculo branco central r=15
  */
 
-const S = 'black'; // stroke / fill color – sempre preto
+// viewBox exato: formas preenchem o quadrado da célula completamente
+const VB = '0 0 100 100';
 
 const FIGURAS = {
-  // F1: Triângulo com ponto no centro
-  'F1': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="20,4 37,36 3,36"
-        fill="none" stroke="${S}" stroke-width="2" stroke-linejoin="round"/>
-      <circle cx="20" cy="26" r="2.5" fill="${S}"/>
+
+  /* ── Grupo 1: Metades ──────────────────────────────── */
+
+  'G1A': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="50" height="100" fill="#000"/>
     </svg>`,
 
-  // F2: Círculo com linha horizontal no meio
-  'F2': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="20" cy="20" r="16" stroke="${S}" stroke-width="2"/>
-      <line x1="4" y1="20" x2="36" y2="20" stroke="${S}" stroke-width="2" stroke-linecap="round"/>
+  'G1B': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="50" y="0" width="50" height="100" fill="#000"/>
     </svg>`,
 
-  // F3: Quadrado simples (vazio)
-  'F3': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="5" y="5" width="30" height="30" stroke="${S}" stroke-width="2"/>
+  'G1C': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="100" height="50" fill="#000"/>
     </svg>`,
 
-  // F4: Losango
-  'F4': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="20,3 37,20 20,37 3,20"
-        fill="none" stroke="${S}" stroke-width="2" stroke-linejoin="round"/>
+  'G1D': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="50" width="100" height="50" fill="#000"/>
     </svg>`,
 
-  // F5: Estrela de 4 pontas (×)
-  'F5': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <line x1="7" y1="7"  x2="33" y2="33" stroke="${S}" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="33" y1="7" x2="7"  y2="33" stroke="${S}" stroke-width="2.2" stroke-linecap="round"/>
+  /* ── Grupo 2: Triângulos de Borda ──────────────────── */
+
+  // Triângulo vazado apontando para cima (base na parte inferior)
+  'G2A': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,50 0,0 100,0 100,50 50,0" fill="#000"/>
     </svg>`,
 
-  // F6: Seta simples →
-  'F6': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <line x1="4" y1="20" x2="32" y2="20" stroke="${S}" stroke-width="2" stroke-linecap="round"/>
-      <polyline points="22,11 32,20 22,29"
-        fill="none" stroke="${S}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  // Triângulo vazado apontando para baixo (base na parte superior)
+  'G2B': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,50 0,100 100,100 100,50 50,100" fill="#000"/>
     </svg>`,
 
-  // F7: Chevron (ângulo aberto para a direita >)
-  'F7': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polyline points="10,5 30,20 10,35"
-        fill="none" stroke="${S}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  // Triângulo vazado apontando para a esquerda (base na direita)
+  'G2C': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,0 0,0 0,100 50,100 0,50" fill="#000"/>
     </svg>`,
 
-  // F8: Cruz (+)
-  'F8': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <line x1="20" y1="4"  x2="20" y2="36" stroke="${S}" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="4"  y1="20" x2="36" y2="20" stroke="${S}" stroke-width="2.2" stroke-linecap="round"/>
+  // Triângulo vazado apontando para a direita (base na esquerda)
+  'G2D': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,0 100,0 100,100 50,100 100,50" fill="#000"/>
     </svg>`,
 
-  // F9: Arco / Semicírculo (abertura para baixo)
-  'F9': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M5,22 A15,15 0 0 1 35,22" stroke="${S}" stroke-width="2" stroke-linecap="round" fill="none"/>
-      <line x1="5" y1="22" x2="35" y2="22" stroke="${S}" stroke-width="2" stroke-linecap="round"/>
+  /* ── Grupo 3: Cortes Diagonais ─────────────────────── */
+
+  // Canto superior esquerdo  /  → triângulo cobre topo-esq.
+  'G3A': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 100,0 0,100" fill="#000"/>
     </svg>`,
 
-  // F10: Triângulo invertido com traço na base
-  'F10': () => `
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="20,36 37,8 3,8"
-        fill="none" stroke="${S}" stroke-width="2" stroke-linejoin="round"/>
-      <line x1="10" y1="8" x2="30" y2="8" stroke="${S}" stroke-width="2.5" stroke-linecap="round"/>
+  // Canto inferior direito   /  → triângulo cobre base-dir.
+  'G3B': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,100 100,100 100,0" fill="#000"/>
+    </svg>`,
+
+  // Canto superior direito   \  → triângulo cobre topo-dir.
+  'G3C': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 100,0 100,100" fill="#000"/>
+    </svg>`,
+
+  // Canto inferior esquerdo  \  → triângulo cobre base-esq.
+  'G3D': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 100,100 0,100" fill="#000"/>
+    </svg>`,
+
+  /* ── Grupo 4: Figura Complexa ──────────────────────── */
+
+  // Losango Vazado: losango preto + círculo branco central
+  'G4A': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,0 100,50 50,100 0,50" fill="#000"/>
+      <circle cx="50" cy="50" r="15" fill="#fff"/>
+    </svg>`,
+
+  // Losango Vazado Inverso: fundo preto, losango branco, círculo preto
+  'G4B': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="100" height="100" fill="#000"/>
+      <polygon points="50,0 100,50 50,100 0,50" fill="#fff"/>
+      <circle cx="50" cy="50" r="15" fill="#000"/>
     </svg>`,
 };
 
-const CHAVES_FIGURAS = Object.keys(FIGURAS); // F1…F10
+const CHAVES_FIGURAS = Object.keys(FIGURAS); // 14 chaves
+FIGURAS['G2_IMAGEM2'] = FIGURAS['G2B'];
 
 /**
  * Sorteia as figuras-alvo conforme o tipo de teste.
+ * @param {'AC'|'AD'|'AA'} tipo
+ * @returns {string[]}
  */
 function sortearAlvos(tipo) {
   const embaralhadas = [...CHAVES_FIGURAS].sort(() => Math.random() - 0.5);
@@ -108,7 +141,9 @@ function sortearAlvos(tipo) {
 }
 
 /**
- * Retorna uma figura que NÃO seja alvo.
+ * Retorna uma chave de figura que NÃO seja alvo ativo.
+ * @param {string[]} alvoKeys
+ * @returns {string}
  */
 function figuraDitratora(alvoKeys) {
   const disponiveis = CHAVES_FIGURAS.filter(k => !alvoKeys.includes(k));

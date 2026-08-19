@@ -11,9 +11,9 @@
 /* =====================================================
    CONSTANTES
    ===================================================== */
-const LINHAS             = 10;
-const COLUNAS            = 10;
-const TOTAL_ITENS        = LINHAS * COLUNAS;   // 100
+const LINHAS             = 20;
+const COLUNAS            = 20;
+const TOTAL_ITENS        = LINHAS * COLUNAS;   // 400
 const TEMPO_TESTE        = 120;                // segundos
 const PROB_ALVO          = 0.22;               // 22% de chance de nascer alvo
 const AA_FASE_DURACAO    = 15;                 // segundos por fase (AA)
@@ -50,15 +50,6 @@ function $el(tag, cls, html = '') {
   if (cls) el.className = cls;
   if (html) el.innerHTML = html;
   return el;
-}
-
-function showFeedback(x, y, texto) {
-  const el = $el('div', 'feedback-float');
-  el.textContent = texto;
-  el.style.left = `${x - 16}px`;
-  el.style.top  = `${y - 24}px`;
-  document.body.appendChild(el);
-  el.addEventListener('animationend', () => el.remove());
 }
 
 /* =====================================================
@@ -344,17 +335,10 @@ function onItemClick(e, id, isAlvo, alvoIndex, el) {
     Estado.alvosClicados.add(id);
     Estado.itensInteragidos.add(id);
     el.classList.add('acertado');
-    showFeedback(e.clientX, e.clientY, '+1 ✓');
   } else {
     Estado.erros++;
     Estado.itensInteragidos.add(id);
-    // Shake + marca permanente
-    el.classList.add('shake');
-    el.addEventListener('animationend', () => {
-      el.classList.remove('shake');
-      el.classList.add('errado-marcado');
-    }, { once: true });
-    showFeedback(e.clientX, e.clientY, '−1 ✗');
+    el.classList.add('errado-marcado');
   }
 
   atualizarPainel();

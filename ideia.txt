@@ -49,3 +49,36 @@ Estrutura Externa: Um losango preto cujas quatro pontas tocam a exata metade das
 Estrutura Interna (O Vazado): Um círculo com preenchimento branco (da mesma cor do fundo) localizado no exato centro da figura (cx="50", cy="50"). O raio desse círculo (r) aparenta ter cerca de 15% do tamanho total do quadrado.
 
 💡 Dica de Desenvolvimento: O antgravityt pode criar um único componente <svg> e passar props (ex: type="losango") ou simplesmente criar 13 classes de utilidade no CSS usando clip-path: polygon(...) para mascarar o preenchimento preto em cima de fundos brancos, o que deixaria o DOM incrivelmente leve.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Não quero animação de acerto ou erro ao selecionar uma figura e não quero q elas esteja inseridas dentro de um quadrado, que está sendo usado como deliomitador,
