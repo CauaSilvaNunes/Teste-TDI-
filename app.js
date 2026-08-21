@@ -92,8 +92,8 @@ function renderMenuSeletor() {
       id: 'AA', emoji: '⇄', classe: 'card-aa',
       sigla: 'AA — Alternada',
       nome: 'Atenção Alternada',
-      desc: 'Foque em 2 alvos, mas apenas 1 por vez. O alvo ativo troca a cada 15 segundos.',
-      chips: ['2 alvos', '100 itens', '15s/fase'],
+      desc: 'Foque em um alvo diferente para cada linha. O alvo específico da linha é indicado à esquerda.',
+      chips: ['20 alvos', '400 itens', '120s'],
     },
   ];
 
@@ -133,32 +133,31 @@ function renderPainelAlvo() {
 
   // Esquerda
   const left = $el('div', 'painel-left');
-  left.innerHTML = `
-    <span class="painel-tipo">${Estado.tipo}</span>
-    <span class="painel-label">Procure:</span>
-  `;
+  
+  if (Estado.tipo === 'AA') {
+    left.innerHTML = `
+      <span class="painel-tipo">${Estado.tipo}</span>
+      <span class="painel-label">Observe os alvos específicos à esquerda de cada linha</span>
+    `;
+  } else {
+    left.innerHTML = `
+      <span class="painel-tipo">${Estado.tipo}</span>
+      <span class="painel-label">Procure:</span>
+    `;
 
-  const alvosContainer = $el('div', 'painel-alvos-container');
-  alvosContainer.id = 'painel-alvos-container';
+    const alvosContainer = $el('div', 'painel-alvos-container');
+    alvosContainer.id = 'painel-alvos-container';
 
-  Estado.alvos.forEach((chave, i) => {
-    const item = $el('div', 'painel-alvo-item');
-    item.id = `painel-alvo-${i}`;
-    item.innerHTML = FIGURAS[chave]();
-
-    if (Estado.tipo === 'AA') {
-      item.classList.toggle('ativo',   i === Estado.alvosAtivo);
-      item.classList.toggle('inativo', i !== Estado.alvosAtivo);
-      const tag = $el('span', 'aa-tag');
-      tag.textContent = i + 1;
-      item.appendChild(tag);
-    } else {
+    Estado.alvos.forEach((chave, i) => {
+      const item = $el('div', 'painel-alvo-item');
+      item.id = `painel-alvo-${i}`;
+      item.innerHTML = FIGURAS[chave]();
       item.classList.add('ativo');
-    }
-    alvosContainer.appendChild(item);
-  });
+      alvosContainer.appendChild(item);
+    });
 
-  left.appendChild(alvosContainer);
+    left.appendChild(alvosContainer);
+  }
 
   // Centro: timer + contadores
   const centro = $el('div', 'painel-center');
@@ -188,18 +187,7 @@ function renderPainelAlvo() {
   `;
   centro.appendChild(counters);
 
-  if (Estado.tipo === 'AA') {
-    const switchBar = $el('div', 'aa-switch-bar');
-    switchBar.id = 'aa-switch-bar';
-    switchBar.innerHTML = `
-      <span>Troca em:</span>
-      <div class="progress-mini">
-        <div class="progress-fill" id="aa-progress" style="width:100%"></div>
-      </div>
-      <span id="aa-fase-countdown">${AA_FASE_DURACAO}s</span>
-    `;
-    centro.appendChild(switchBar);
-  }
+  // (Removida a barra de progresso do AA pois não há mais troca por tempo)
 
   // Direita: sair
   const right = $el('div', 'painel-right');
@@ -240,24 +228,11 @@ function atualizarPainel() {
   if (av) av.textContent = Estado.acertos;
   if (ev) ev.textContent = Estado.erros;
 
-  // AA
-  if (Estado.tipo === 'AA') {
-    Estado.alvos.forEach((_, i) => {
-      const el = document.getElementById(`painel-alvo-${i}`);
-      if (!el) return;
-      el.classList.toggle('ativo',   i === Estado.alvosAtivo);
-      el.classList.toggle('inativo', i !== Estado.alvosAtivo);
-    });
-    const pct = (Estado.aaFaseRestante / AA_FASE_DURACAO) * 100;
-    const prog  = document.getElementById('aa-progress');
-    const label = document.getElementById('aa-fase-countdown');
-    if (prog)  prog.style.width = `${pct}%`;
-    if (label) label.textContent = `${Estado.aaFaseRestante}s`;
-  }
+  // (Removida a lógica de atualização da interface AA baseada em tempo)
 }
 
 /* =====================================================
-   GERAÇÃO DO GRID 10×10
+   GERAÇÃO DO GRID
    ===================================================== */
 function gerarGrid(grid) {
   Estado.itensGerados     = [];
@@ -265,57 +240,108 @@ function gerarGrid(grid) {
   Estado.alvosClicados    = new Set();
   Estado.itensInteragidos = new Set();
 
-  // Decide quais posições serão alvo (garante pelo menos PROB_ALVO * 100)
-  const slots = Array.from({ length: TOTAL_ITENS }, (_, i) => i);
+  if (Estado.tipo === 'AA') {
+    grid.classList.add('grid-aa');
+    Estado.alvosPorLinha = [];
+    
+    for (let l = 0; l < LINHAS; l++) {
+      // Sorteia um alvo específico para esta linha
+      const alvoLinha = CHAVES_FIGURAS[Math.floor(Math.random() * CHAVES_FIGURAS.length)];
+      Estado.alvosPorLinha.push(alvoLinha);
+      
+      // Cria a célula do alvo (indicador na esquerda)
+      const elAlvo = $el('div', 'item-alvo-linha');
+      elAlvo.innerHTML = FIGURAS[alvoLinha]();
+      grid.appendChild(elAlvo);
+      
+      // Define alvos nesta linha
+      const slots = Array.from({ length: COLUNAS }, (_, i) => i);
+      for (let i = slots.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [slots[i], slots[j]] = [slots[j], slots[i]];
+      }
+      
+      const qtdAlvos = Math.round(COLUNAS * PROB_ALVO);
+      const posAlvos = new Set(slots.slice(0, qtdAlvos));
+      
+      for (let c = 0; c < COLUNAS; c++) {
+        const isAlvo = posAlvos.has(c);
+        const chave = isAlvo ? alvoLinha : figuraDitratora([alvoLinha]);
+        
+        const id = uid();
+        const el = $el('div', 'item-teste');
+        el.id = `item-${id}`;
+        el.dataset.id       = id;
+        el.dataset.isAlvo   = isAlvo ? '1' : '0';
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.innerHTML = FIGURAS[chave]();
+        
+        el.addEventListener('click', (e) => onItemClick(e, id, isAlvo, true, el));
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') onItemClick(e, id, isAlvo, true, el);
+        });
+        
+        grid.appendChild(el);
+        Estado.itensGerados.push({ id, chave, isAlvo, alvoIndex: null, el });
+        if (isAlvo) Estado.totalAlvosNaTela++;
+      }
+    }
+  } else {
+    grid.classList.remove('grid-aa');
+    // Decide quais posições serão alvo (garante pelo menos PROB_ALVO * 100)
+    const slots = Array.from({ length: TOTAL_ITENS }, (_, i) => i);
 
-  // Embaralha Fisher-Yates
-  for (let i = slots.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [slots[i], slots[j]] = [slots[j], slots[i]];
-  }
-
-  // Define posições-alvo
-  const qtdAlvos    = Math.round(TOTAL_ITENS * PROB_ALVO); // ~22
-  const posAlvos    = new Set(slots.slice(0, qtdAlvos));
-
-  for (let i = 0; i < TOTAL_ITENS; i++) {
-    const isAlvo = posAlvos.has(i);
-
-    let chave, alvoIndex = null;
-    if (isAlvo) {
-      alvoIndex = Math.floor(Math.random() * Estado.alvos.length);
-      chave = Estado.alvos[alvoIndex];
-    } else {
-      chave = figuraDitratora(Estado.alvos);
+    // Embaralha Fisher-Yates
+    for (let i = slots.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [slots[i], slots[j]] = [slots[j], slots[i]];
     }
 
-    const id = uid();
-    const el = $el('div', 'item-teste');
-    el.id = `item-${id}`;
-    el.dataset.id       = id;
-    el.dataset.isAlvo   = isAlvo ? '1' : '0';
-    el.dataset.alvoIndex = alvoIndex !== null ? alvoIndex : '';
-    el.setAttribute('role', 'button');
-    el.setAttribute('tabindex', '0');
-    el.setAttribute('aria-label', 'Figura do teste');
-    el.innerHTML = FIGURAS[chave]();
+    // Define posições-alvo
+    const qtdAlvos    = Math.round(TOTAL_ITENS * PROB_ALVO); // ~22
+    const posAlvos    = new Set(slots.slice(0, qtdAlvos));
 
-    el.addEventListener('click', (e) => onItemClick(e, id, isAlvo, alvoIndex, el));
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') onItemClick(e, id, isAlvo, alvoIndex, el);
-    });
+    for (let i = 0; i < TOTAL_ITENS; i++) {
+      const isAlvo = posAlvos.has(i);
 
-    grid.appendChild(el);
+      let chave, alvoIndex = null;
+      if (isAlvo) {
+        alvoIndex = Math.floor(Math.random() * Estado.alvos.length);
+        chave = Estado.alvos[alvoIndex];
+      } else {
+        chave = figuraDitratora(Estado.alvos);
+      }
 
-    Estado.itensGerados.push({ id, chave, isAlvo, alvoIndex, el });
-    if (isAlvo) Estado.totalAlvosNaTela++;
+      const id = uid();
+      const el = $el('div', 'item-teste');
+      el.id = `item-${id}`;
+      el.dataset.id       = id;
+      el.dataset.isAlvo   = isAlvo ? '1' : '0';
+      el.dataset.alvoIndex = alvoIndex !== null ? alvoIndex : '';
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('aria-label', 'Figura do teste');
+      el.innerHTML = FIGURAS[chave]();
+
+      // Em AC e AD não há alvo ativo que mude, apenas se fosse antigo AA
+      el.addEventListener('click', (e) => onItemClick(e, id, isAlvo, true, el));
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') onItemClick(e, id, isAlvo, true, el);
+      });
+
+      grid.appendChild(el);
+
+      Estado.itensGerados.push({ id, chave, isAlvo, alvoIndex, el });
+      if (isAlvo) Estado.totalAlvosNaTela++;
+    }
   }
 }
 
 /* =====================================================
    HANDLER DE CLIQUE
    ===================================================== */
-function onItemClick(e, id, isAlvo, alvoIndex, el) {
+function onItemClick(e, id, isAlvo, alvoAtivo, el) {
   if (!Estado.rodandoTeste) return;
 
   // Já interagido → ignora
@@ -326,9 +352,6 @@ function onItemClick(e, id, isAlvo, alvoIndex, el) {
   const ultimo = Estado.spamCooldowns.get(id) || 0;
   if (agora - ultimo < SPAM_COOLDOWN_MS) return;
   Estado.spamCooldowns.set(id, agora);
-
-  // Para AA: verifica se o alvo está ativo
-  const alvoAtivo = Estado.tipo !== 'AA' || !isAlvo || (alvoIndex === Estado.alvosAtivo);
 
   if (isAlvo && alvoAtivo) {
     Estado.acertos++;
@@ -432,17 +455,7 @@ function iniciarTimer(wrapper) {
     if (!Estado.rodandoTeste) return;
     Estado.tempoRestante--;
 
-    // AA — troca de fase
-    if (Estado.tipo === 'AA') {
-      Estado.aaFaseRestante--;
-      if (Estado.aaFaseRestante <= 0) {
-        Estado.aaFaseRestante = AA_FASE_DURACAO;
-        Estado.alvosAtivo     = (Estado.alvosAtivo + 1) % Estado.alvos.length;
-        // Flash preto-e-branco na wrapper
-        wrapper.classList.add('flash');
-        wrapper.addEventListener('animationend', () => wrapper.classList.remove('flash'), { once: true });
-      }
-    }
+    // (Troca de fase temporizada para o AA foi removida para esta nova versão)
 
     atualizarPainel();
 
