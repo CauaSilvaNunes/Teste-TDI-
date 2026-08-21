@@ -417,7 +417,7 @@ body {
 .grid-teste {
   display: grid;
   grid-template-columns: repeat(20, var(--cell-size));
-  gap: 3px;                    /* respiro entre as células */
+  gap: 16px 8px;               /* respiro entre as células (16px vertical, 8px horizontal) */
   padding: 10px;               /* margem interna do bloco */
   background: var(--bg);
 }

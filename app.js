@@ -359,11 +359,12 @@ function showCountdown(callback) {
 
   let n = 3;
   numEl.textContent = n;
+  let currentNumEl = numEl;
 
   const tick = setInterval(() => {
     n--;
     if (n === 0) {
-      numEl.textContent = 'Vai!';
+      currentNumEl.textContent = 'Vai!';
       lbl.textContent = '';
       setTimeout(() => {
         clearInterval(tick);
@@ -372,9 +373,10 @@ function showCountdown(callback) {
       }, 650);
     } else {
       // Re-dispara animação
-      const novo = numEl.cloneNode(false);
+      const novo = currentNumEl.cloneNode(false);
       novo.textContent = n;
-      overlay.replaceChild(novo, numEl);
+      overlay.replaceChild(novo, currentNumEl);
+      currentNumEl = novo;
     }
   }, 900);
 }
