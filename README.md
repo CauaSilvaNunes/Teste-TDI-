@@ -5,7 +5,7 @@ Este projeto é uma aplicação web para a realização de um teste neuropsicol�
 ## 🔗 Link de Acesso
 
 O aplicativo está disponível online e pode ser acessado através do seguinte link:
-**[Acessar o Aplicativo](https://dapper-choux-225dd3.netlify.app/)**
+**[Acessar o Aplicativo](https://teste-tdi.vercel.app/)**
 
 ## ✨ Funcionalidades Principais
 
