@@ -95,6 +95,13 @@ function renderMenuSeletor() {
       desc: 'Foque em um alvo diferente para cada linha. O alvo específico da linha é indicado à esquerda.',
       chips: ['20 alvos', '400 itens', '120s'],
     },
+    {
+      id: 'T3', emoji: '△', classe: 'card-t3',
+      sigla: 'TEDIF 3 — Concentrada',
+      nome: 'TEDIF 3',
+      desc: 'Figuras geométricas aninhadas (triângulos, quadrados, pentágonos, hexágonos e heptágonos) com números de 1 a 50, distribuídas em folha A4.',
+      chips: ['50 figuras', 'Folha A4', 'Números 1–50'],
+    },
   ];
 
   tipos.forEach(t => {
@@ -113,10 +120,18 @@ function renderMenuSeletor() {
       </div>
       <div class="card-arrow">↗</div>
     `;
-    card.addEventListener('click', () => iniciarTeste(t.id));
-    card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') iniciarTeste(t.id);
-    });
+    // TEDIF 3 tem sua própria tela; os demais usam iniciarTeste()
+    if (t.id === 'T3') {
+      card.addEventListener('click', () => renderTedif3());
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') renderTedif3();
+      });
+    } else {
+      card.addEventListener('click', () => iniciarTeste(t.id));
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') iniciarTeste(t.id);
+      });
+    }
     cards.appendChild(card);
   });
 
@@ -481,7 +496,8 @@ function encerrarTeste(porTempo) {
    ===================================================== */
 function renderResultado({ acertos, erros, omissoes, pontuacao, porTempo }) {
   const nomeTeste = Estado.tipo === 'AC' ? 'Concentrada'
-                  : Estado.tipo === 'AD' ? 'Dividida' : 'Alternada';
+                  : Estado.tipo === 'AD' ? 'Dividida'
+                  : Estado.tipo === 'AA' ? 'Alternada' : 'TEDIF 3';
 
   let emoji = '◎', titulo = 'Resultado razoável';
   if (pontuacao >= 15) { emoji = '★'; titulo = 'Excelente desempenho!'; }

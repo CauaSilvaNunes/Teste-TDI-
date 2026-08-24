@@ -1,10 +1,11 @@
-const CACHE_NAME = 'psico-test-v1';
+const CACHE_NAME = 'psico-test-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './figuras.js',
+  './tedif3.js',
   './manifest.json',
   './icon.svg'
 ];

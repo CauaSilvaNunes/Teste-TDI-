@@ -716,3 +716,204 @@ body {
   .menu-cards { grid-template-columns: 1fr; }
   .resultado-modal { padding: 28px 22px; }
 }
+
+/* =====================================================
+   TEDIF 3 — Teste de Atenção Concentrada (Figuras Aninhadas)
+   ===================================================== */
+
+/* Barra superior */
+.tedif3-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  height: 60px;
+  background: var(--text);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  border-bottom: 2px solid #000;
+}
+
+.tedif3-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.tedif3-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--accent-inv);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.tedif3-title {
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.01em;
+}
+
+.tedif3-info {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.tedif3-info-text {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.55);
+  font-style: italic;
+}
+
+/* Área principal (scroll) */
+.tedif3-main {
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
+  background: #c8c8c8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 24px 40px;
+  overflow: auto;
+}
+
+/* Folha A4 */
+.tedif3-sheet {
+  background: #ffffff;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.18),
+    0 1px 4px rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+
+/* Cada figura individual */
+.tedif3-figura {
+  cursor: default;
+  user-select: none;
+}
+
+/* SVG das figuras TEDIF 3 */
+.tedif3-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Impressão: garante que a folha A4 seja impressa corretamente */
+@media print {
+  .tedif3-topbar { display: none; }
+  .tedif3-main {
+    margin-top: 0;
+    padding: 0;
+    background: none;
+  }
+  .tedif3-sheet {
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+}
+
+/* Card TEDIF 3 no menu */
+.card-t3 {
+  border-color: var(--border);
+}
+.card-t3:hover {
+  border-color: var(--text);
+}
+
+/* ── Timer no topbar ── */
+.t3-timer-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex: 1;
+}
+
+#t3-periodo-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+
+#t3-tempo-label {
+  font-family: var(--font-head);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Risco ao clicar ── */
+.tedif3-figura {
+  cursor: pointer;
+}
+
+.tedif3-figura.tedif3-marcada {
+  cursor: default;
+}
+
+.tedif3-figura.tedif3-marcada::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  background: linear-gradient(
+    to bottom right,
+    transparent calc(50% - 1.5px),
+    #000        calc(50% - 1.5px),
+    #000        calc(50% + 1.5px),
+    transparent calc(50% + 1.5px)
+  );
+}
+
+/* ── Overlay de período ── */
+.tedif3-periodo-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(0, 0, 0, 0.93);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 0.2s ease;
+}
+
+.t3-ov-box {
+  text-align: center;
+  color: #fff;
+}
+
+.t3-ov-periodo {
+  font-family: var(--font-head);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.t3-ov-sub {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 24px;
+}
+
+.t3-ov-count {
+  font-family: var(--font-head);
+  font-size: 5rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  animation: count-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
