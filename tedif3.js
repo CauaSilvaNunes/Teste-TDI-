@@ -313,11 +313,24 @@ function renderTedif3() {
 
   /* ── Inicia timer ── */
   iniciarTimerT3(() => {
-    // Fim do teste — volta ao menu após breve pausa
-    setTimeout(() => {
-      pararTimerT3();
+    // Fim do teste — exibe overlay final que só fecha quando o usuário fechar
+    pararTimerT3();
+    const fim = document.createElement('div');
+    fim.className = 'tedif3-periodo-overlay';
+    fim.id = 'tedif3-fim-overlay';
+    fim.innerHTML = `
+      <div class="t3-ov-box">
+        <div class="t3-ov-periodo">✓ Teste Concluído!</div>
+        <div class="t3-ov-sub">Todos os 4 períodos foram finalizados.</div>
+        <button class="btn-primary" id="tedif3-btn-fim" style="margin-top:1.5rem;font-size:1rem;padding:.75rem 2rem;">
+          ← Voltar ao Menu
+        </button>
+      </div>`;
+    document.body.appendChild(fim);
+    document.getElementById('tedif3-btn-fim').addEventListener('click', () => {
+      fim.remove();
       document.body.style.overflow = '';
       renderMenuSeletor();
-    }, 1000);
+    });
   });
 }

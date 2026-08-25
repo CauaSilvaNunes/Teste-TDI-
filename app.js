@@ -15,7 +15,7 @@ const LINHAS             = 20;
 const COLUNAS            = 20;
 const TOTAL_ITENS        = LINHAS * COLUNAS;   // 400
 const TEMPO_TESTE        = 120;                // segundos
-const PROB_ALVO          = 0.22;               // 22% de chance de nascer alvo
+const PROB_ALVO          = 0.35;               // 35% de chance de nascer alvo
 const AA_FASE_DURACAO    = 15;                 // segundos por fase (AA)
 const SPAM_COOLDOWN_MS   = 250;               // ms entre cliques no mesmo item
 
@@ -485,10 +485,33 @@ function encerrarTeste(porTempo) {
   Estado.rodandoTeste = false;
   clearInterval(Estado.timerInterval);
 
-  const omissoes  = Estado.totalAlvosNaTela - Estado.acertos;
-  const pontuacao = Estado.acertos - Estado.erros;
+  // Encontra o índice (na ordem da grade, esq→dir, cima→baixo) do último item
+  // que foi interagido (acerto ou erro). Itens após esse ponto são ignorados.
+  let ultimoIdx = -1;
+  Estado.itensGerados.forEach((item, idx) => {
+    if (Estado.itensInteragidos.has(item.id)) ultimoIdx = idx;
+  });
 
-  renderResultado({ acertos: Estado.acertos, erros: Estado.erros, omissoes, pontuacao, porTempo });
+  // Recalcula dentro da janela [0 .. ultimoIdx]
+  let acertos = 0, erros = 0, omissoes = 0;
+  if (ultimoIdx >= 0) {
+    for (let i = 0; i <= ultimoIdx; i++) {
+      const item = Estado.itensGerados[i];
+      const interagido = Estado.itensInteragidos.has(item.id);
+      const acertado   = Estado.alvosClicados.has(item.id);
+
+      if (item.isAlvo) {
+        if (acertado) acertos++;
+        else          omissoes++;  // alvo não clicado dentro da janela
+      } else {
+        if (interagido) erros++;   // não-alvo clicado = erro
+      }
+    }
+  }
+
+  const pontuacao = acertos - erros;
+
+  renderResultado({ acertos, erros, omissoes, pontuacao, porTempo });
 }
 
 /* =====================================================

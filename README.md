@@ -52,5 +52,3 @@ Como o projeto é estático, você pode executá-lo com qualquer servidor web lo
 A migração de suporte offline (PWA) e adaptações para tablet estão consolidadas. Este repositório mantém a branch `main` como o código em produção atualizado, hospedado e pronto para uso pelo link de acesso.
 
 
-
-As primeiras 10 figuras usarão smepre branca e as outras de 10 em 10 alteraram de entre azul,amarelo,verde e vermelho 
