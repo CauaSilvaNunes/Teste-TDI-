@@ -28,7 +28,8 @@ function corFigura(num) {
 
 /** Triângulo equilátero — vértice aponta para o canto. */
 function svgTriangle(num, corner, color) {
-  const cx = 50, cy = 50, outerR = 46, innerR = 20;
+  const cx = 50, cy = 50, outerR = 46, innerR = 27;
+  const label = String(num).padStart(2, '0');
   const startDeg = { tl: 225, tr: 315, bl: 135, br: 45 }[corner] ?? 225;
   const outerPts = polyPts(3, cx, cy, outerR, startDeg);
   const innerPts = polyPts(3, cx, cy, innerR, startDeg);
@@ -37,26 +38,28 @@ function svgTriangle(num, corner, color) {
     <polygon points="${outerPts}" fill="${color}" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
     <polygon points="${innerPts}" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
     <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
-      font-size="11" font-family="Inter,sans-serif" font-weight="700" fill="#000">${num}</text>
+      font-size="15" font-family="Inter,sans-serif" font-weight="700" fill="#000">${label}</text>
   </svg>`;
 }
 
 /** Quadrado com cantos arredondados externo + interno. */
 function svgSquare(num, color) {
+  const label = String(num).padStart(2, '0');
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="tedif3-svg">
     <rect x="0" y="0" width="100" height="100" fill="#fff"/>
-    <rect x="6" y="6" width="88" height="88" rx="14" ry="14"
+    <rect x="4" y="4" width="92" height="92" rx="14" ry="14"
       fill="${color}" stroke="#000" stroke-width="3"/>
-    <rect x="28" y="28" width="44" height="44" rx="8" ry="8"
+    <rect x="20" y="20" width="60" height="60" rx="10" ry="10"
       fill="#fff" stroke="#000" stroke-width="2"/>
     <text x="50" y="50" text-anchor="middle" dominant-baseline="central"
-      font-size="13" font-family="Inter,sans-serif" font-weight="700" fill="#000">${num}</text>
+      font-size="17" font-family="Inter,sans-serif" font-weight="700" fill="#000">${label}</text>
   </svg>`;
 }
 
 /** Polígono regular n lados externo + interno. */
 function svgPoly(num, n, color) {
-  const cx = 50, cy = 50, outerR = 42, innerR = 20;
+  const cx = 50, cy = 50, outerR = 45, innerR = 26;
+  const label = String(num).padStart(2, '0');
   const outerPts = polyPts(n, cx, cy, outerR, -90);
   const innerPts = polyPts(n, cx, cy, innerR, -90);
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="tedif3-svg">
@@ -64,7 +67,7 @@ function svgPoly(num, n, color) {
     <polygon points="${outerPts}" fill="${color}" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
     <polygon points="${innerPts}" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
     <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
-      font-size="13" font-family="Inter,sans-serif" font-weight="700" fill="#000">${num}</text>
+      font-size="17" font-family="Inter,sans-serif" font-weight="700" fill="#000">${label}</text>
   </svg>`;
 }
 
