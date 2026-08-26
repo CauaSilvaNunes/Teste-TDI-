@@ -222,6 +222,35 @@ function pararTimerT3() {
 }
 
 /* =====================================================
+   AVISO DE ORDEM
+   ===================================================== */
+let _t3ToastTimeout = null;
+
+function mostrarAvisoOrdem(numEsperado) {
+  // Remove qualquer toast anterior imediatamente
+  const existing = document.getElementById('t3-toast-ordem');
+  if (existing) {
+    existing.remove();
+    clearTimeout(_t3ToastTimeout);
+  }
+
+  const toast = document.createElement('div');
+  toast.id = 't3-toast-ordem';
+  toast.className = 't3-toast-ordem';
+  toast.textContent = `Ordem incorreta — próxima figura: ${String(numEsperado).padStart(2, '0')}`;
+  document.body.appendChild(toast);
+
+  // Força reflow para animar entrada
+  void toast.offsetWidth;
+  toast.classList.add('t3-toast-visivel');
+
+  _t3ToastTimeout = setTimeout(() => {
+    toast.classList.remove('t3-toast-visivel');
+    setTimeout(() => toast.remove(), 350);
+  }, 2000);
+}
+
+/* =====================================================
    RENDERIZAÇÃO DO TESTE TEDIF 3
    ===================================================== */
 function renderTedif3() {
@@ -280,6 +309,9 @@ function renderTedif3() {
   const shuffled  = [...figuras].sort(() => Math.random() - 0.5);
   const positions = gerarPosicoesAleatorias(shuffled.length);
 
+  // Rastreia o próximo número esperado na sequência (começa em 1)
+  let proximoEsperado = 1;
+
   shuffled.forEach((fig, idx) => {
     const pos     = positions[idx];
     const wrapper = document.createElement('div');
@@ -296,9 +328,18 @@ function renderTedif3() {
     `;
     wrapper.innerHTML = gerarFiguraTedif3(fig.num, fig.sides, fig.corner);
 
-    /* Risco ao clicar */
+    /* Risco ao clicar — valida ordem sequencial */
     wrapper.addEventListener('click', () => {
-      wrapper.classList.toggle('tedif3-marcada');
+      if (wrapper.classList.contains('tedif3-marcada')) return; // já marcada, ignora
+
+      if (fig.num === proximoEsperado) {
+        // Ordem correta
+        wrapper.classList.add('tedif3-marcada');
+        proximoEsperado++;
+      } else {
+        // Ordem errada: avisa sem marcar
+        mostrarAvisoOrdem(proximoEsperado);
+      }
     });
 
     sheet.appendChild(wrapper);

@@ -4,14 +4,17 @@ Este projeto é uma aplicação web para a realização de um teste neuropsicol�
 
 ## 🔗 Link de Acesso
 
-O aplicativo está disponível online e pode ser acessado através do seguinte link:
-**[Acessar o Aplicativo](https://teste-tdi.vercel.app/)**
+O site está disponível online e pode ser acessado através do seguinte link:
+**[Acessar o site](https://teste-tdi.vercel.app/)**
+
+Ele pode se tornar um aplicativo para tablets e rodar offline ao adicionar um atalho para a tela de inicio com o botão de
+"instalar o app" do seu navegador.
 
 ## ✨ Funcionalidades Principais
 
 - **Grade de Figuras:** Matriz de figuras geométricas (como losangos, retângulos cortados, etc).
 - **Design Monocromático:** Foco total na avaliação da atenção, sem distrações de cores ou animações de feedback na seleção.
-- **PWA e Suporte Offline:** O aplicativo pode ser instalado em tablets ou dispositivos móveis (como PWA) e executado de forma offline e portátil, ideal para aplicações de testes in-loco.
+- **PWA e Suporte Offline:** O site pode ser instalado em tablets ou dispositivos móveis (como PWA) e executado de forma offline e portátil, ideal para aplicações de testes in-loco.
 - **Leve e Estático:** Desenvolvido puramente com HTML, CSS (Vanilla) e JavaScript, garantindo alta performance e compatibilidade.
 
 ## 🛠 Como Executar Localmente
@@ -52,3 +55,4 @@ Como o projeto é estático, você pode executá-lo com qualquer servidor web lo
 A migração de suporte offline (PWA) e adaptações para tablet estão consolidadas. Este repositório mantém a branch `main` como o código em produção atualizado, hospedado e pronto para uso pelo link de acesso.
 
 
+Colocar os 
