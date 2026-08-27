@@ -1,10 +1,10 @@
 'use strict';
 
 /* =====================================================
-   COR DO ANEL — cicla figura a figura
-   Sequência: branco → azul → amarelo → verde → vermelho → branco → ...
+   CONSTANTES — valores lidos de config.js
+   Para alterar, edite o arquivo config.js
    ===================================================== */
-const COR_CICLO_T2 = ['#ffffff', '#5B9BD5', '#FFC000', '#70AD47', '#FF4444'];
+const COR_CICLO_T2 = CONFIG.tedif2.cores;
 
 function corFiguraT2(num) {
   return COR_CICLO_T2[(num - 1) % COR_CICLO_T2.length];
@@ -45,11 +45,12 @@ function buildFigurasTedif2() {
 
 /* =====================================================
    LAYOUT: GRADE ESTRATIFICADA RESPONSIVA
+   Valores definidos em config.js → tedif2
    ===================================================== */
-const FIG_SIZE_PCT_T2  = 10;
-const A4_PAD_PCT_T2    = 2;
-const GRID_COLS_T2     = 7;
-const GRID_ROWS_T2     = 8;
+const FIG_SIZE_PCT_T2 = CONFIG.tedif2.tamanhoFig;
+const A4_PAD_PCT_T2   = CONFIG.tedif2.margem;
+const GRID_COLS_T2    = CONFIG.tedif2.colunas;
+const GRID_ROWS_T2    = CONFIG.tedif2.linhas;
 
 function gerarPosicoesAleatorias_T2(n) {
   const usableW = 100 - 2 * A4_PAD_PCT_T2;
@@ -82,10 +83,10 @@ function gerarPosicoesAleatorias_T2(n) {
 }
 
 /* =====================================================
-   TIMER: 4 PERÍODOS DE 1 MINUTO
+   TIMER — valores definidos em config.js → tedif2
    ===================================================== */
-const T2_PERIODOS  = 4;
-const T2_DURACAO_S = 60;
+const T2_PERIODOS  = CONFIG.tedif2.periodos;
+const T2_DURACAO_S = CONFIG.tedif2.duracaoS;
 
 let _t2Interval = null;
 

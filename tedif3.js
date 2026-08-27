@@ -13,10 +13,12 @@ function polyPts(n, cx, cy, r, startDeg = -90) {
 }
 
 /* =====================================================
-   COR DO ANEL — cicla figura a figura
-   Sequência: branco → azul → amarelo → verde → vermelho → branco → ...
+   CONSTANTES — valores lidos de config.js
+   Para alterar, edite o arquivo config.js
    ===================================================== */
-const COR_CICLO = ['#ffffff', '#5B9BD5', '#FFC000', '#70AD47', '#FF4444'];
+
+/* Cores dos anéis externos (cicla a cada 5 figuras) */
+const COR_CICLO = CONFIG.tedif3.cores;
 
 function corFigura(num) {
   return COR_CICLO[(num - 1) % COR_CICLO.length];
@@ -100,11 +102,12 @@ function buildFigurasTedif3() {
 
 /* =====================================================
    LAYOUT: GRADE ESTRATIFICADA RESPONSIVA
+   Valores definidos em config.js → tedif3
    ===================================================== */
-const FIG_SIZE_PCT  = 10;   // Figuras maiores (10% da largura da folha)
-const A4_PAD_PCT    = 2;    // Margem da folha
-const GRID_COLS     = 7;    // 7 colunas
-const GRID_ROWS     = 8;    // 8 linhas = 56 slots (6 slots vazios para respiro leve)
+const FIG_SIZE_PCT = CONFIG.tedif3.tamanhoFig;
+const A4_PAD_PCT   = CONFIG.tedif3.margem;
+const GRID_COLS    = CONFIG.tedif3.colunas;
+const GRID_ROWS    = CONFIG.tedif3.linhas;
 
 function gerarPosicoesAleatorias(n) {
   const usableW = 100 - 2 * A4_PAD_PCT;
@@ -140,10 +143,10 @@ function gerarPosicoesAleatorias(n) {
 }
 
 /* =====================================================
-   TIMER: 4 PERÍODOS DE 1 MINUTO
+   TIMER — valores definidos em config.js → tedif3
    ===================================================== */
-const T3_PERIODOS   = 4;
-const T3_DURACAO_S  = 60; // segundos por período
+const T3_PERIODOS  = CONFIG.tedif3.periodos;
+const T3_DURACAO_S = CONFIG.tedif3.duracaoS;
 
 let _t3Interval = null;
 

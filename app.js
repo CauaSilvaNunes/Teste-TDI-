@@ -9,16 +9,17 @@
 'use strict';
 
 /* =====================================================
-   CONSTANTES
+   CONSTANTES — valores lidos de config.js
+   Para alterar, edite o arquivo config.js
    ===================================================== */
-const LINHAS             = 20;
-const COLUNAS            = 20;
-const TOTAL_ITENS        = LINHAS * COLUNAS;   // 400
-const TEMPO_TESTE        = 120;                // segundos
-const PROB_ALVO          = 0.35;               // 35% de chance de nascer alvo (AC e AA)
-const PROB_ALVO_AD       = 0.35;              // ~90 alvos em 400 itens (AD — Dividida)
-const AA_FASE_DURACAO    = 15;                 // segundos por fase (AA)
-const SPAM_COOLDOWN_MS   = 250;               // ms entre cliques no mesmo item
+const LINHAS           = CONFIG.grade.linhas;
+const COLUNAS          = CONFIG.grade.colunas;
+const TOTAL_ITENS      = LINHAS * COLUNAS;
+const TEMPO_TESTE      = CONFIG.tempo.duracaoSegundos;
+const PROB_ALVO        = CONFIG.probabilidade.alvo;
+const PROB_ALVO_AD     = CONFIG.probabilidade.alvoAD;
+const AA_FASE_DURACAO  = 15;                        // segundos por fase (AA) — interno
+const SPAM_COOLDOWN_MS = CONFIG.antiSpam.intervaloMs;
 
 /* =====================================================
    ESTADO GLOBAL
