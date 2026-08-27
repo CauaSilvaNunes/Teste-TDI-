@@ -821,6 +821,15 @@ body {
   }
 }
 
+/* Card TEDIF 2 no menu */
+.card-t2 {
+  border-color: var(--border);
+}
+.card-t2:hover {
+  border-color: #5B9BD5;
+  box-shadow: 0 8px 32px rgba(91,155,213,0.18);
+}
+
 /* Card TEDIF 3 no menu */
 .card-t3 {
   border-color: var(--border);
@@ -838,7 +847,8 @@ body {
   flex: 1;
 }
 
-#t3-periodo-label {
+#t3-periodo-label,
+#t2-periodo-label {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -846,7 +856,8 @@ body {
   color: rgba(255,255,255,0.55);
 }
 
-#t3-tempo-label {
+#t3-tempo-label,
+#t2-tempo-label {
   font-family: var(--font-head);
   font-size: 1.3rem;
   font-weight: 800;

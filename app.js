@@ -97,6 +97,13 @@ function renderMenuSeletor() {
       chips: ['20 alvos', '400 itens', '120s'],
     },
     {
+      id: 'T2', emoji: '○', classe: 'card-t2',
+      sigla: 'TEDIF 2 — Concentrada',
+      nome: 'TEDIF 2',
+      desc: 'Círculos aninhados com números de 1 a 50, distribuídos em folha A4. Marque-os em ordem crescente.',
+      chips: ['50 figuras', 'Folha A4', 'Números 1–50'],
+    },
+    {
       id: 'T3', emoji: '△', classe: 'card-t3',
       sigla: 'TEDIF 3 — Concentrada',
       nome: 'TEDIF 3',
@@ -121,8 +128,13 @@ function renderMenuSeletor() {
       </div>
       <div class="card-arrow">↗</div>
     `;
-    // TEDIF 3 tem sua própria tela; os demais usam iniciarTeste()
-    if (t.id === 'T3') {
+    // TEDIF 2 e TEDIF 3 têm suas próprias telas
+    if (t.id === 'T2') {
+      card.addEventListener('click', () => renderTedif2());
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') renderTedif2();
+      });
+    } else if (t.id === 'T3') {
       card.addEventListener('click', () => renderTedif3());
       card.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') renderTedif3();
