@@ -15,7 +15,8 @@ const LINHAS             = 20;
 const COLUNAS            = 20;
 const TOTAL_ITENS        = LINHAS * COLUNAS;   // 400
 const TEMPO_TESTE        = 120;                // segundos
-const PROB_ALVO          = 0.35;               // 35% de chance de nascer alvo
+const PROB_ALVO          = 0.35;               // 35% de chance de nascer alvo (AC e AA)
+const PROB_ALVO_AD       = 0.35;              // ~90 alvos em 400 itens (AD — Dividida)
 const AA_FASE_DURACAO    = 15;                 // segundos por fase (AA)
 const SPAM_COOLDOWN_MS   = 250;               // ms entre cliques no mesmo item
 
@@ -325,8 +326,9 @@ function gerarGrid(grid) {
       [slots[i], slots[j]] = [slots[j], slots[i]];
     }
 
-    // Define posições-alvo
-    const qtdAlvos    = Math.round(TOTAL_ITENS * PROB_ALVO); // ~22
+    // Define posições-alvo (AD usa probabilidade maior para ~90 alvos)
+    const probAlvo    = Estado.tipo === 'AD' ? PROB_ALVO_AD : PROB_ALVO;
+    const qtdAlvos    = Math.round(TOTAL_ITENS * probAlvo); // ~90 para AD, ~140 para AC
     const posAlvos    = new Set(slots.slice(0, qtdAlvos));
 
     for (let i = 0; i < TOTAL_ITENS; i++) {
@@ -534,18 +536,11 @@ function renderResultado({ acertos, erros, omissoes, pontuacao, porTempo }) {
                   : Estado.tipo === 'AD' ? 'Dividida'
                   : Estado.tipo === 'AA' ? 'Alternada' : 'TEDIF 3';
 
-  let emoji = '◎', titulo = 'Resultado razoável';
-  if (pontuacao >= 15) { emoji = '★'; titulo = 'Excelente desempenho!'; }
-  else if (pontuacao >= 8) { emoji = '◆'; titulo = 'Bom resultado!'; }
-  else if (pontuacao < 0)  { emoji = '✕'; titulo = 'Precisa de treino'; }
-
   const overlay = $el('div', 'resultado-overlay');
   overlay.id = 'resultado-overlay';
 
   const modal = $el('div', 'resultado-modal');
   modal.innerHTML = `
-    <div class="resultado-emoji">${emoji}</div>
-    <h2 class="resultado-titulo">${titulo}</h2>
     <p class="resultado-subtitulo">
       Atenção ${nomeTeste} &mdash; ${porTempo ? 'Tempo esgotado' : 'Encerrado manualmente'}
     </p>
