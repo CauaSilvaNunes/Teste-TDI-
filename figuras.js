@@ -1,4 +1,7 @@
 /**
+ * FIGURAS DISPONÍVEIS: G1A, G1B, G1C, G1D, G2A, G2B, G2C, G2D,
+ *                      G3A, G3B, G3C, G3D, G4A, G4B, G5A  (15 no total)
+ *
  * figuras.js — As 13 figuras do Teste de Atenção de Fabián Javier
  *
  * viewBox: "-8 -8 116 116"  →  8 unidades de margem em cada lado
@@ -106,7 +109,7 @@ const FIGURAS = {
       <polygon points="0,0 100,100 0,100" fill="#000"/>
     </svg>`,
 
-  /* ── Grupo 4: Figura Complexa ──────────────────────── */
+  /* ── Grupo 4: Figura Complexa ────────────────────────── */
 
   // Losango Vazado: losango preto + círculo branco central
   'G4A': () => `
@@ -122,9 +125,18 @@ const FIGURAS = {
       <polygon points="50,0 100,50 50,100 0,50" fill="#fff"/>
       <circle cx="50" cy="50" r="15" fill="#000"/>
     </svg>`,
+
+  /* ── Grupo 5: Losango Equilátero ────────────────────── */
+
+  // Losango equilátero branco sólido sobre fundo preto (sem furo)
+  'G5A': () => `
+    <svg viewBox="${VB}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="100" height="100" fill="#000"/>
+      <polygon points="50,0 100,50 50,100 0,50" fill="#fff"/>
+    </svg>`,
 };
 
-const CHAVES_FIGURAS = Object.keys(FIGURAS); // 14 chaves
+const CHAVES_FIGURAS = Object.keys(FIGURAS); // 15 chaves
 FIGURAS['G2_IMAGEM2'] = FIGURAS['G2B'];
 
 /**
